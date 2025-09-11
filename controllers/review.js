@@ -6,7 +6,7 @@ module.exports.destroyReview = async(req,res)=>{
     await Listing.findByIdAndUpdate(id,{$pull:{reviews:reviewId}})
     await Review.findByIdAndDelete(reviewId);
     req.flash("success","Review deleted");
-    res.redirect(`/listings/${id}`);
+    res.redirect(`/wanderstay/listings/${id}`);
 }
 
 module.exports.createReview = async(req,res)=>{
@@ -18,5 +18,5 @@ module.exports.createReview = async(req,res)=>{
     await listing.save();
     // console.log(req.session.username);
     req.flash("success","New Review created");
-    res.redirect(`/listings/${listing._id}`);
+    res.redirect(`/wanderstay/listings/${listing._id}`);
     }

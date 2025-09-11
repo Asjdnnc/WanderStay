@@ -8,14 +8,14 @@ module.exports.destroyReservation = async(req,res)=>{
     await User.findByIdAndUpdate(userId,{$pull:{Reservations:reservationId.id}})
     await Reservation.findByIdAndDelete(reservationId.id);
     req.flash("success","Reservation deleted");
-    res.redirect("/listings");
+    res.redirect("/wanderstay/listings");
 }
 module.exports.createReservation = async(req,res)=>{
     let {checkin,checkout,finalPrice,listingId,guests} = req.body;
     let listing = Listing.findById(listingId);
     if(!listing) {
         req.flash("error", "Listing not found");
-        return res.redirect("/listings");
+        return res.redirect("/wanderstay/listings");
     }
     let newReservation = new Reservation({
     author :req.user._id,
@@ -29,7 +29,7 @@ module.exports.createReservation = async(req,res)=>{
     let user = await User.findById(req.user._id);
     if (!user) {
         req.flash("error", "User not found");
-        return res.redirect("/listings");
+        return res.redirect("/wanderstay/listings");
     }
     if (!user.Reservations) {
         user.Reservations = [];
@@ -37,7 +37,7 @@ module.exports.createReservation = async(req,res)=>{
     user.Reservations.push(newReservation._id);
     await user.save();
     req.flash("success","New Reservation created");
-    res.redirect('/listings');
+    res.redirect('/wanderstay/listings');
     }
     module.exports.showReservation = async(req,res)=>{
     let userId = req.user._id;
@@ -48,7 +48,7 @@ module.exports.createReservation = async(req,res)=>{
         });
     if(user.Reservations.length==0){
     req.flash("error","No Reservation found");
-    res.redirect('/listings');
+    res.redirect('/wanderstay/listings');
     }
     res.render('listings/reservation.ejs',{ reservations: user.Reservations, user: user});
 }

@@ -32,7 +32,7 @@ module.exports.index = async (req,res) => {
     .populate({path:"reviews",populate:{path:"author"}}).populate("owner");
     if(!data){
         req.flash("error","Listing does not exist");
-        res.redirect("/listings");
+        res.redirect("/wanderstay/listings");
     }
     const username = req.session.username;
     data.clickCount += 1;
@@ -58,7 +58,7 @@ module.exports.createListing = async(req,res,next) => { //wrapAsync error middle
     newListing.categories = categories;
     let saved = await newListing.save();
     req.flash("success","New listing created!!");
-    res.redirect("/listings");
+    res.redirect("/wanderstay/listings");
 }
 
 //edit render route
@@ -67,7 +67,7 @@ module.exports.renderEditForm = async (req,res) =>{
     const listing = await Listing.findById(id);
     if(!listing){
         req.flash("error","Listing does not exist");
-        res.redirect("/listings");
+        res.redirect("/wanderstay/listings");
     } 
     res.render("listings/edit.ejs",{listing}); 
 }
@@ -92,7 +92,7 @@ module.exports.updateListing = async (req,res) => {
     }
     await listing.save();
     req.flash("success","Listing updated");
-    res.redirect(`/listings/${id}`);
+    res.redirect(`/wanderstay/listings/${id}`);
 }
 //search route
 module.exports.search = async (req, res) => {
@@ -105,7 +105,7 @@ module.exports.search = async (req, res) => {
       const results = await Listing.find(searchQuery);
       if(results.length===0){
         req.flash("error","No listing found");
-        return res.redirect("/listings");
+        return res.redirect("/wanderstay/listings");
       }
       res.render("listings/search.ejs",{results})
     } else {
@@ -121,7 +121,7 @@ module.exports.category = async (req,res)=>{
   let listings;
   if(category==="Rooms"){
     req.flash("error","This feature is in development stage");
-    res.redirect("/listings");
+    res.redirect("/wanderstay/listings");
   }
   else if(category==="Trending"){
     listings = await Listing.aggregate([
@@ -144,5 +144,5 @@ module.exports.destroyListing = async (req,res) =>{
     let {id} = req.params;
     await Listing.findByIdAndDelete(id);
     req.flash("success","Listing deleted");
-    res.redirect("/listings");
+    res.redirect("/wanderstay/listings");
 } 

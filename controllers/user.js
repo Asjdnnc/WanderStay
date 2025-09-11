@@ -16,12 +16,12 @@ module.exports.signup = async(req,res)=>{
                 return next(err);
             }
             req.flash("success","Welcome to Wanderlust!!");
-            res.redirect("/listings");
+            res.redirect("/wanderstay/listings");
         })
         }
     catch(e){
         req.flash("error",e.message);
-        res.redirect("/signup");
+        res.redirect("/wanderstay/signup");
     }
     }
 
@@ -35,7 +35,7 @@ module.exports.signup = async(req,res)=>{
         const {username} = req.body;
         req.session.username = username;
          req.flash("success","Welcome back to Wanderlust!!");
-         let redirectUrl = res.locals.redirectUrl || "/listings"
+         let redirectUrl = res.locals.redirectUrl || "/wanderstay/listings"
          res.redirect(redirectUrl);
  }
     //logout
@@ -45,6 +45,6 @@ module.exports.signup = async(req,res)=>{
                return next(err);
             }
             req.flash("success","Logged out successfully");
-            res.redirect("/listings");
+            res.redirect("/wanderstay/listings");
         })
     }
