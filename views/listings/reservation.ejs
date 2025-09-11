@@ -24,7 +24,7 @@
                                 </p>
                             </div>
                             <div> <!-- Container for the delete button -->
-                                <form method="post" action="/destroyReservation/<%= reservation._id %>?_method=delete">
+                                <form method="post" action="/wanderstay/destroyReservation/<%= reservation._id %>?_method=delete">
                                     <input type="hidden" name="userId" value="<%= user._id %>">
                                     <button class="btn btn-dark add-btn" style="color: white; z-index: 10; margin-top:10px;">Delete</button>
                                 </form>

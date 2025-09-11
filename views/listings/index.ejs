@@ -2,68 +2,68 @@
 <%- layout("/layouts/boilerplate") -%>
 <!--navbar-->
 <div id="filters">
-  <a href="/listings/filter?category=Trending">
+  <a href="/wanderstay/listings/filter?category=Trending">
     <div class="filter">
       <div><i class="fa-solid fa-fire"></i></div>
       <p>Trending</p>
     </div>
   </a>
-  <a href="/listings/filter?category=Rooms">
+  <a href="/wanderstay/listings/filter?category=Rooms">
     <div class="filter">
       <div><i class="fa-solid fa-bed"></i></div>
       <p>Rooms</p>
     </div>
   </a>
-  <a href="/listings/filter?category=Mountains">
+  <a href="/wanderstay/listings/filter?category=Mountains">
     <div class="filter">
       <div><i class="fa-solid fa-mountain-sun"></i></div>
       <p>Mountains</p>
     </div>
   </a>
-  <a href="/listings/filter?category=Iconic Cities">
+  <a href="/wanderstay/listings/filter?category=Iconic Cities">
     <div class="filter">
       <div><i class="fa-solid fa-mountain-city"></i></div>
       <p>Iconic Cities</p>
     </div>
   </a>
 
-  <a href="/listings/filter?category=Castles">
+  <a href="/wanderstay/listings/filter?category=Castles">
     <div class="filter">
       <div><i class="fa-brands fa-fort-awesome"></i></div>
       <p>Castles</p>
     </div>
   </a>
-  <a href="/listings/filter?category=Amazing pools">
+  <a href="/wanderstay/listings/filter?category=Amazing pools">
     <div class="filter">
       <div><i class="fa-solid fa-person-swimming"></i></div>
       <p>Amazing pools</p>
     </div>
   </a>
-  <a href="/listings/filter?category=Camping">
+  <a href="/wanderstay/listings/filter?category=Camping">
     <div class="filter">
       <div><i class="fa-solid fa-campground"></i></div>
       <p>Camping</p>
     </div>
   </a>
-  <a href="/listings/filter?category=Farms">
+  <a href="/wanderstay/listings/filter?category=Farms">
     <div class="filter">
       <div><i class="fa-solid fa-tractor"></i></div>
       <p>Farms</p>
     </div>
   </a>
-  <a href="/listings/filter?category=Arctic">
+  <a href="/wanderstay/listings/filter?category=Arctic">
     <div class="filter">
       <div><i class="fa-solid fa-snowman"></i></div>
       <p>Arctic</p>
     </div>
   </a>
-  <a href="/listings/filter?category=Dome">
+  <a href="/wanderstay/listings/filter?category=Dome">
     <div class="filter">
       <div><i class="fa-solid fa-igloo"></i></div>
       <p>Dome</p>
     </div>
   </a>
-  <a href="/listings/filter?category=Boat">
+  <a href="/wanderstay/listings/filter?category=Boat">
     <div class="filter">
       <div><i class="fa-solid fa-ship"></i></div>
       <p>Boat</p>
@@ -83,7 +83,7 @@
 </div>
 <div class="row row-cols-lg-4 row-cols-md-2 row-cols-sm-1 mt-3">
   <%for(let listing of allListings){%>
-  <a href="/listings/<%= listing._id%>" class="listing-link">
+  <a href="/wanderstay/listings/<%= listing._id%>" class="listing-link">
     <div class="card col listing-card">
       <div class="glass">
         <img

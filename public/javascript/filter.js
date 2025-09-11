@@ -1,7 +1,7 @@
 document.querySelectorAll("a").forEach(a => {
     a.addEventListener('click', async () => {
       const category = a.getAttribute('data-category');
-      const response = await fetch(`/listings?category=${category}`);
+      const response = await fetch(`/wanderstay/listings?category=${category}`);
       const listings = await response.json();
       displayListings(listings);
     });

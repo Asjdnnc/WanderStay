@@ -104,7 +104,7 @@ app.get('/auth/google',
     (req, res) => {
       // Successful authentication
       req.flash("success", "Welcome!");
-      res.redirect('/listings');  // Redirect to your dashboard or home page
+      res.redirect('/wanderstay/listings');  // Redirect to your dashboard or home page
     }
   );
   
@@ -130,9 +130,9 @@ async function main() {
     await mongoose.connect(dbUrl);
 }
 
-app.use("/listings",listingsRouter);
-app.use("/listings/:id/reviews",reviewsRouter);
-app.use("/",userRouter,reservationRouter);
+app.use("/wanderstay/listings",listingsRouter);
+app.use("/wanderstay/listings/:id/reviews",reviewsRouter);
+app.use("/wanderstay",userRouter,reservationRouter);
 
 app.all("*",(req,res,next)=>{  //if route do not match 
     next(new ExpressError(404,"Page not found"));
