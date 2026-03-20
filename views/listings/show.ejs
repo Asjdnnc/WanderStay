@@ -16,14 +16,14 @@
         <div class="card-body">
             <p class="card-text">
                 <br>
-                <b><i>Owned By</i></b> : <i>&nbsp <%= data.owner.username %></i><br>
+                <b><i>Owned By</i></b> : <i>&nbsp <%= data.owner ? data.owner.username : 'WanderStay Admin' %></i><br>
                 <b><i>Description</i></b> : &nbsp <%= data.description %><br>
                 <b><i>Location </i></b> : &nbsp <%= data.location %><br>
                 <b><i>Country</i></b> : &nbsp <%= data.country %>
             </p>
         </div>
     </div>
-    <% if(currUser && currUser._id.equals(data.owner._id)) { %>
+    <% if(currUser && data.owner && currUser._id.equals(data.owner._id)) { %>
         <div class="btns">
             <a href="/wanderstay/listings/<%= data._id %>/edit" class="btn btn-lg btn-dark col-1.1 mb-3 add-btn">Edit</a>
             <form method="post" action="/wanderstay/listings/<%= data._id %>?_method=delete">

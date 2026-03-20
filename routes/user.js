@@ -15,7 +15,7 @@ router.route("/login")
     .post(saveRedirectUrl, //login route
         //authenticate middleware
         passport.authenticate("local",{
-            failureRedirect:"/login",
+            failureRedirect:"/wanderstay/login",
             failureFlash:true,
         }),
         wrapAsync(userController.login));

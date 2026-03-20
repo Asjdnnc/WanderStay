@@ -15,7 +15,7 @@ module.exports.signup = async(req,res)=>{
             if(err){
                 return next(err);
             }
-            req.flash("success","Welcome to Wanderlust!!");
+            req.flash("success","Welcome to WanderStay!!");
             res.redirect("/wanderstay/listings");
         })
         }
@@ -34,7 +34,7 @@ module.exports.signup = async(req,res)=>{
     module.exports.login = async(req,res)=>{
         const {username} = req.body;
         req.session.username = username;
-         req.flash("success","Welcome back to Wanderlust!!");
+         req.flash("success","Welcome back to WanderStay!!");
          let redirectUrl = res.locals.redirectUrl || "/wanderstay/listings"
          res.redirect(redirectUrl);
  }

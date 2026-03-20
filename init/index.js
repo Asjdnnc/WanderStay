@@ -1,11 +1,11 @@
-//code for clearing the database(reset) and adding the new data from data.js 
+require('dotenv').config({ path: '../.env' });
 const mongoose = require("mongoose");  //requreing the mongoose library
 const initData = require("./data.js");  //requering the data 
 const Listing = require("../models/listing.js");    
-const mongodb = "mongodb://127.0.0.1:27017/project";    //connecting with the moongoose data base
+const mongodb = process.env.ATLASDB_URL || "mongodb://127.0.0.1:27017/project";    //connecting with the moongoose data base
 main()
 .then(() => {
-    console.log("connection successfull");
+    console.log("connection successfull to", mongodb);
 })
 .catch((err) => {
     console.log(err);
