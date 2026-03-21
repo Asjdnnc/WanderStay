@@ -19,7 +19,7 @@ jobs:
             cd /var/www/WanderStay
             
             # Pull latest code
-            git pull origin main
+            git pull origin master
             
             # Build the new image
             docker build -t my-app-image .
