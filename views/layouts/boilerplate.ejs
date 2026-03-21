@@ -48,5 +48,69 @@
     <script src="/javascript/filter.js"></script>
     <script src="/javascript/map.js"></script>
     <script src="/javascript/booking.js"></script>
+
+    <% if (!currUser) { %>
+    <style>
+      #autoLoginModal {
+        /* Blur effect removing default black background */
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        background-color: rgba(255, 255, 255, 0.25);
+      }
+      #autoLoginModal .modal-content {
+        color: #222; /* Fixed text color to ensure readability */
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+      }
+      #autoLoginModal .modal-header {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      }
+      #autoLoginModal .form-control {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 1px solid #ced4da;
+      }
+      #autoLoginModal .form-control::placeholder {
+        color: #6c757d !important;
+      }
+    </style>
+    <!-- Auto Login Modal -->
+    <div class="modal fade" id="autoLoginModal" tabindex="-1" aria-labelledby="autoLoginModalLabel" aria-hidden="true" data-bs-backdrop="false">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="autoLoginModalLabel">Login on Wanderstay</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form action="/wanderstay/login" method="post" class="needs-validation" novalidate>
+                <div class="mb-3">
+                    <label for="username" class="form-label" style="font-weight: 500;">Username</label>
+                    <input name="username" type="text" id="username" placeholder="Enter Username" class="form-control" required>
+                    <div class="invalid-feedback">Please enter a valid Username.</div>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label" style="font-weight: 500;">Password</label>
+                    <input name="password" type="password" id="password" placeholder="Enter password" class="form-control" required>
+                    <div class="invalid-feedback">Please enter a valid Password.</div>
+                </div>
+                <button class="btn btn-dark w-100" style="border-radius: 8px;">Login</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        if (!sessionStorage.getItem('loginPopupShown')) {
+          var autoLoginModal = new bootstrap.Modal(document.getElementById('autoLoginModal'));
+          autoLoginModal.show();
+          sessionStorage.setItem('loginPopupShown', 'true');
+        }
+      });
+    </script>
+    <% } %>
   </body>
 </html>
