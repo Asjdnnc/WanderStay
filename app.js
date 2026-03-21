@@ -30,6 +30,12 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname,"views"));
 app.use(express.urlencoded({extended : true})); //to decode the put request
 app.use(methodOverride("_method")); //for modified request
+app.use((req, res, next) => { 
+    res.locals.success = []; 
+    res.locals.error = []; 
+    res.locals.currUser = null; 
+    next(); 
+});
 app.engine('ejs',ejsMate);
 app.use(express.static(path.join(__dirname,"/public")));
  
