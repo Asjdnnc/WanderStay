@@ -42,6 +42,7 @@ app.use(express.static(path.join(__dirname,"/public")));
 const store = MongoStore.create({
     mongoUrl:dbUrl,
     touchAfter:24*3600, //time for session update if not change
+    collectionName: "secure_sessions"
 });
 store.on("error",()=>{
     console.log("error in mongo session store",err)
