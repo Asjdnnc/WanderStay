@@ -5,7 +5,6 @@ Welcome to my first project using the MERN stack! This repository contains the c
 ## Project Overview
 
 This project is a comprehensive web application (MVC framework) built using the **MERN stack** (MongoDB, Express.js, React.js, and Node.js). 
-[Website](https://majorproject-0elt.onrender.com/listings)
 
 ## Features
 - **User Authentication**: Secure login and registration system.
