@@ -1,0 +1,32 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Navigate to your project folder (change this to your actual path)
+            cd /var/www/WanderStay
+            
+            # Pull latest code
+            git pull origin main
+            
+            # Build the new image
+            docker build -t my-app-image .
+            
+            # Stop and remove the old container (ignores errors if it doesn't exist)
+            docker stop my-app-container || true
+            docker rm my-app-container || true
+            
+            # Run the new container mapping port 80 to 8080
+            docker run -d --name my-app-container -p 80:8080 my-app-image
