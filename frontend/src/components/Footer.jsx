@@ -30,20 +30,10 @@ export default function Footer() {
                     <div>
                         <h4 className="text-sm font-bold text-white mb-3">Hosting</h4>
                         <ul className="space-y-2 text-xs">
-                            <li><a href="#" className="hover:text-rose-400 transition-colors">WanderStay your home</a></li>
+                            <li><a href="https://wanderstay-aditya05yt.duckdns.org/listings/new" className="hover:text-rose-400 transition-colors">WanderStay your home</a></li>
                             <li><a href="#" className="hover:text-rose-400 transition-colors">Cover for Hosts</a></li>
                             <li><a href="#" className="hover:text-rose-400 transition-colors">Hosting resources</a></li>
                             <li><a href="#" className="hover:text-rose-400 transition-colors">Community forum</a></li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h4 className="text-sm font-bold text-white mb-3">WanderStay</h4>
-                        <ul className="space-y-2 text-xs">
-                            <li><a href="#" className="hover:text-rose-400 transition-colors">Newsroom</a></li>
-                            <li><a href="#" className="hover:text-rose-400 transition-colors">New features</a></li>
-                            <li><a href="#" className="hover:text-rose-400 transition-colors">Careers</a></li>
-                            <li><a href="#" className="hover:text-rose-400 transition-colors">Investors</a></li>
                         </ul>
                     </div>
                 </div>

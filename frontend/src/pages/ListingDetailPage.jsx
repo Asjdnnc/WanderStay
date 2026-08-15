@@ -173,6 +173,7 @@ export default function ListingDetailPage({ openAuthModal }) {
                 description: `Reservation for ${listing.title}`,
                 order_id: orderId.startsWith('order_test_') ? undefined : orderId,
                 handler: async function (response) {
+
                     try {
                         const verifyRes = await axios.post('/api/reservations/verify-payment', {
                             razorpay_order_id: response.razorpay_order_id || orderId,
@@ -351,7 +352,7 @@ export default function ListingDetailPage({ openAuthModal }) {
     return (
         <div className="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen pb-16 transition-colors duration-300">
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                
+
                 {/* Header Title & Actions */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <div>
@@ -420,10 +421,10 @@ export default function ListingDetailPage({ openAuthModal }) {
 
                 {/* Main Content Layout */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                    
+
                     {/* Left Column: Description, Host Info, Amenities, Map, Reviews */}
                     <div className="lg:col-span-2 space-y-10">
-                        
+
                         {/* Host Information */}
                         <div className="flex items-center justify-between pb-8 border-b border-slate-200 dark:border-slate-800">
                             <div>
@@ -482,7 +483,7 @@ export default function ListingDetailPage({ openAuthModal }) {
                             {/* Write Review Form */}
                             <form onSubmit={handleAddReview} className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-4">
                                 <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">Leave a Review</h4>
-                                
+
                                 <div>
                                     <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Rating</label>
                                     <div className="flex items-center gap-1">
@@ -558,7 +559,7 @@ export default function ListingDetailPage({ openAuthModal }) {
                     {/* Right Column: Reservation Card */}
                     <div className="lg:col-span-1">
                         <div className="sticky top-28 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-xl space-y-6">
-                            
+
                             <div className="flex items-baseline justify-between">
                                 <div>
                                     <span className="text-2xl font-black text-slate-900 dark:text-slate-100">₹{pricePerNight.toLocaleString('en-IN')}</span>
@@ -614,11 +615,10 @@ export default function ListingDetailPage({ openAuthModal }) {
 
                                 {/* Real-time Availability Feedback Badge */}
                                 {availability.checked && (
-                                    <div className={`p-3 rounded-2xl text-xs font-bold flex items-center gap-2 border ${
-                                        availability.isAvailable
-                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                            : 'bg-rose-50 text-rose-700 border-rose-200'
-                                    }`}>
+                                    <div className={`p-3 rounded-2xl text-xs font-bold flex items-center gap-2 border ${availability.isAvailable
+                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                        : 'bg-rose-50 text-rose-700 border-rose-200'
+                                        }`}>
                                         {availability.isAvailable ? (
                                             <>
                                                 <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -636,11 +636,10 @@ export default function ListingDetailPage({ openAuthModal }) {
                                 <button
                                     type="submit"
                                     disabled={reserving || (availability.checked && !availability.isAvailable)}
-                                    className={`w-full py-3.5 text-white font-extrabold rounded-2xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 cursor-pointer ${
-                                        availability.checked && !availability.isAvailable
-                                            ? 'bg-slate-300 shadow-none cursor-not-allowed text-slate-500'
-                                            : 'bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 shadow-rose-500/25'
-                                    }`}
+                                    className={`w-full py-3.5 text-white font-extrabold rounded-2xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 cursor-pointer ${availability.checked && !availability.isAvailable
+                                        ? 'bg-slate-300 shadow-none cursor-not-allowed text-slate-500'
+                                        : 'bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 shadow-rose-500/25'
+                                        }`}
                                 >
                                     <CreditCard className="w-4 h-4" />
                                     <span>{reserving ? 'Processing Payment...' : 'Pay & Book with Razorpay'}</span>
