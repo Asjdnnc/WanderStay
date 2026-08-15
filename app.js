@@ -117,9 +117,11 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     app.get('/api/auth/google/callback',
         passport.authenticate('google', { failureRedirect: '/login' }),
         (req, res) => {
-            res.redirect('/');
+            const frontendUrl = process.env.FRONTEND_URL || 'https://wander-stay-wheat.vercel.app';
+            res.redirect(frontendUrl);
         }
     );
+
 }
 
 passport.serializeUser(User.serializeUser());
