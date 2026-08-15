@@ -7,7 +7,14 @@ const AuthContext = createContext(null);
 axios.defaults.withCredentials = true;
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState(() => {
+        try {
+            const saved = localStorage.getItem('wanderstay_user');
+            return saved ? JSON.parse(saved) : null;
+        } catch (e) {
+            return null;
+        }
+    });
     const [loading, setLoading] = useState(true);
 
     const checkAuthStatus = async () => {
@@ -15,11 +22,17 @@ export const AuthProvider = ({ children }) => {
             const res = await axios.get('/api/auth/current_user');
             if (res.data && res.data.user) {
                 setUser(res.data.user);
+                localStorage.setItem('wanderstay_user', JSON.stringify(res.data.user));
             } else {
                 setUser(null);
+                localStorage.removeItem('wanderstay_user');
             }
         } catch (error) {
-            setUser(null);
+            // Keep local cached user state if offline/network hiccup, or clear if 401
+            if (error.response && error.response.status === 401) {
+                setUser(null);
+                localStorage.removeItem('wanderstay_user');
+            }
         } finally {
             setLoading(false);
         }
@@ -34,6 +47,7 @@ export const AuthProvider = ({ children }) => {
             const res = await axios.post('/api/auth/login', { username, password });
             if (res.data.success) {
                 setUser(res.data.user);
+                localStorage.setItem('wanderstay_user', JSON.stringify(res.data.user));
                 toast.success(res.data.message || 'Logged in successfully!');
                 return true;
             }
@@ -49,6 +63,7 @@ export const AuthProvider = ({ children }) => {
             const res = await axios.post('/api/auth/signup', { username, email, password });
             if (res.data.success) {
                 setUser(res.data.user);
+                localStorage.setItem('wanderstay_user', JSON.stringify(res.data.user));
                 toast.success(res.data.message || 'Account created successfully!');
                 return true;
             }
@@ -64,12 +79,16 @@ export const AuthProvider = ({ children }) => {
             const res = await axios.post('/api/auth/logout');
             if (res.data.success) {
                 setUser(null);
+                localStorage.removeItem('wanderstay_user');
                 toast.success('Logged out successfully');
             }
         } catch (error) {
-            toast.error('Logout error');
+            setUser(null);
+            localStorage.removeItem('wanderstay_user');
+            toast.success('Logged out');
         }
     };
+
 
     return (
         <AuthContext.Provider value={{ user, loading, login, signup, logout, checkAuthStatus }}>
