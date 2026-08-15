@@ -25,10 +25,13 @@ module.exports.signup = async (req, res, next) => {
             if (err) {
                 return next(err);
             }
-            return res.status(201).json({
-                success: true,
-                message: "Welcome to WanderStay!",
-                user: { _id: registeredUser._id, username: registeredUser.username, email: registeredUser.email, isAdmin: checkAdminStatus(registeredUser) }
+            req.session.save((err) => {
+                if (err) return next(err);
+                return res.status(201).json({
+                    success: true,
+                    message: "Welcome to WanderStay!",
+                    user: { _id: registeredUser._id, username: registeredUser.username, email: registeredUser.email, isAdmin: checkAdminStatus(registeredUser) }
+                });
             });
         });
     } catch (e) {
@@ -41,12 +44,18 @@ module.exports.login = async (req, res) => {
     const { username } = req.body;
     req.session.username = username;
     const isAdmin = checkAdminStatus(req.user);
-    return res.json({
-        success: true,
-        message: "Welcome back to WanderStay!",
-        user: { _id: req.user._id, username: req.user.username, email: req.user.email, isAdmin }
+    req.session.save((err) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: "Session save failed" });
+        }
+        return res.json({
+            success: true,
+            message: "Welcome back to WanderStay!",
+            user: { _id: req.user._id, username: req.user.username, email: req.user.email, isAdmin }
+        });
     });
 };
+
 
 
 // logout route
