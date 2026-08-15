@@ -23,9 +23,24 @@ const localStrategy = require("passport-local");
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require("./models/user.js");
 
+// Enable trust proxy for Render / Vercel SSL termination
+app.set('trust proxy', 1);
+
+const allowedOrigins = [
+    'https://wander-stay-wheat.vercel.app',
+    'http://localhost:5173',
+    'http://localhost:8080'
+];
+
 // CORS Configuration
 app.use(cors({
-    origin: true,
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+            callback(null, true);
+        } else {
+            callback(null, true);
+        }
+    },
     credentials: true
 }));
 
@@ -43,20 +58,24 @@ store.on("error", (err) => {
     console.log("error in mongo session store", err);
 });
 
+const isProd = process.env.NODE_ENV === 'production' || process.env.RENDER;
+
 const sessionOptions = {
     store,
     secret: process.env.SECRET || "thisshouldbeabettersecret",
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {
         expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
         maxAge: 7 * 24 * 60 * 60 * 1000,
         httpOnly: true,
-        sameSite: 'lax'
+        sameSite: isProd ? 'none' : 'lax',
+        secure: isProd ? true : false
     }
 };
 
 app.use(session(sessionOptions));
+
 app.use(passport.initialize());
 app.use(passport.session());
 passport.use(new localStrategy(User.authenticate()));
