@@ -86,29 +86,29 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         callbackURL: process.env.GOOGLE_CALLBACK_URL || "http://localhost:8080/api/auth/google/callback"
     },
-    async (accessToken, refreshToken, profile, done) => {
-        const { id, displayName, emails } = profile;
-        try {
-            let user = await User.findOne({ googleId: id });
-            if (!user) {
-                user = await User.findOne({ email: emails[0].value });
-                if (user) {
-                    user.googleId = id;
-                    user.username = displayName;
-                } else {
-                    user = await User.create({
-                        googleId: id,
-                        email: emails[0].value,
-                        username: displayName,
-                    });
+        async (accessToken, refreshToken, profile, done) => {
+            const { id, displayName, emails } = profile;
+            try {
+                let user = await User.findOne({ googleId: id });
+                if (!user) {
+                    user = await User.findOne({ email: emails[0].value });
+                    if (user) {
+                        user.googleId = id;
+                        user.username = displayName;
+                    } else {
+                        user = await User.create({
+                            googleId: id,
+                            email: emails[0].value,
+                            username: displayName,
+                        });
+                    }
+                    await user.save();
                 }
-                await user.save();
+                return done(null, user);
+            } catch (error) {
+                return done(error, false);
             }
-            return done(null, user);
-        } catch (error) {
-            return done(error, false);
-        }
-    }));
+        }));
 
     app.get('/api/auth/google',
         passport.authenticate('google', { scope: ['profile', 'email'] })
@@ -148,7 +148,7 @@ async function main() {
             { $set: { isAdmin: true } }
         );
         console.log("Admin privileges active for aditya05yt@gmail.com");
-    } catch (e) {}
+    } catch (e) { }
 }
 
 
