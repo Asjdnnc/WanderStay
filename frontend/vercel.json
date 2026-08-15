@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://majorproject-0elt.onrender.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
