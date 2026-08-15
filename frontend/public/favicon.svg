@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <linearGradient id="roseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f43f5e" />
+      <stop offset="100%" stop-color="#db2777" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#f43f5e" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Rounded Background Container -->
+  <rect x="5" y="5" width="90" height="90" rx="28" fill="url(#roseGrad)" filter="url(#shadow)"/>
+  
+  <!-- Outer Compass Ring -->
+  <circle cx="50" cy="50" r="32" fill="none" stroke="white" stroke-width="4" stroke-opacity="0.4" stroke-dasharray="3 3"/>
+  <circle cx="50" cy="50" r="36" fill="none" stroke="white" stroke-width="2.5" stroke-opacity="0.7"/>
+
+  <!-- Compass Needle (North-South) -->
+  <!-- North Needle (White) -->
+  <polygon points="50,18 57,50 50,45 43,50" fill="#ffffff" />
+  
+  <!-- South Needle (Light Pink Accent) -->
+  <polygon points="50,82 57,50 50,55 43,50" fill="#fbcfe8" />
+
+  <!-- East-West Accents -->
+  <polygon points="82,50 50,43 55,50 50,57" fill="#ffffff" opacity="0.9" />
+  <polygon points="18,50 50,43 45,50 50,57" fill="#fbcfe8" opacity="0.9" />
+
+  <!-- Center Pivot Dot -->
+  <circle cx="50" cy="50" r="5" fill="#e11d48" stroke="#ffffff" stroke-width="2"/>
+</svg>

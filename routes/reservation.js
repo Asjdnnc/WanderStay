@@ -1,18 +1,26 @@
 const express = require("express");
-const router = express.Router({mergeParams:false});
+const router = express.Router({ mergeParams: false });
 const wrapAsync = require("../utils/wrapAsync.js");
-const Listing = require("../models/listing.js");
-const {validateReview,isLoggedIn,isReviewAuthor} = require("../middleware.js");
+const { isLoggedIn } = require("../middleware.js");
 const reservationController = require("../controllers/reservation.js");
-const { createListing } = require("../controllers/listing.js");
 
-//reservation create route
-router.post("/createReservation",isLoggedIn,wrapAsync(reservationController.createReservation));
+// Check availability route
+router.all("/check-availability", wrapAsync(reservationController.checkAvailability));
 
-//reservation show route
-router.get("/showReservation",isLoggedIn,wrapAsync(reservationController.showReservation));
+// Razorpay order creation route
+router.post("/create-razorpay-order", isLoggedIn, wrapAsync(reservationController.createRazorpayOrder));
+
+// Razorpay payment verification route
+router.post("/verify-payment", isLoggedIn, wrapAsync(reservationController.verifyPayment));
+
+// Legacy/Direct reservation create route
+router.post("/createReservation", isLoggedIn, wrapAsync(reservationController.createReservation));
+
+// Reservation show route
+router.get("/showReservation", isLoggedIn, wrapAsync(reservationController.showReservation));
+
+// Reservation delete route
+router.delete("/destroyReservation/:id", isLoggedIn, wrapAsync(reservationController.destroyReservation));
+
+module.exports = router;
     
-//review delete route
-router.delete("/destroyReservation/:id",isLoggedIn,wrapAsync(reservationController.destroyReservation));
-
-module.exports = router;    

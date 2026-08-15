@@ -1,28 +1,27 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../models/user.js");
 const wrapAsync = require("../utils/wrapAsync.js");
 const passport = require("passport");
-const { saveRedirectUrl } = require("../middleware.js");
 const userController = require("../controllers/user.js");
 
-router.route("/signup")
-    .get(userController.renderSignupForm)
-    .post(wrapAsync(userController.signup)); //signup route
+router.get("/current_user", userController.getCurrentUser);
 
-router.route("/login")
-    .get(userController.renderLoginForm)
-    .post(saveRedirectUrl, //login route
-        //authenticate middleware
-        passport.authenticate("local",{
-            failureRedirect:"/wanderstay/login",
-            failureFlash:true,
-        }),
-        wrapAsync(userController.login));
+router.post("/signup", wrapAsync(userController.signup));
 
-//logout route
-router.get("/logout",userController.logout);
+router.post("/login", (req, res, next) => {
+    passport.authenticate("local", (err, user, info) => {
+        if (err) return next(err);
+        if (!user) {
+            return res.status(401).json({ success: false, message: info ? info.message : "Invalid username or password" });
+        }
+        req.login(user, (err) => {
+            if (err) return next(err);
+            return userController.login(req, res);
+        });
+    })(req, res, next);
+});
 
-
+router.post("/logout", userController.logout);
+router.get("/logout", userController.logout);
 
 module.exports = router;

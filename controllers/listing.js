@@ -1,148 +1,161 @@
 const Listing = require("../models/listing");
 const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
-const mapToken = process.env.MAP_TOKEN;
-const geocodingClient = mbxGeocoding({ accessToken: mapToken });
-
-
-//index
-module.exports.index = async (req,res) => {
-    const allListings = await Listing.find({});
-      res.render("listings/index.ejs",{allListings});
-  }
-
-  //new route
-     module.exports.renderNewForm = (req,res) => {
-     res.render("listings/new.ejs");
+const mapToken = process.env.MAP_TOKEN || "pk.eyJ1IjoiZGVtbyIsImEiOiJjbGV2M3B4ZXcwMDJpM3BwNmNpMnRxdXN4In0.fake";
+let geocodingClient;
+try {
+    if (mapToken) {
+        geocodingClient = mbxGeocoding({ accessToken: mapToken });
     }
+} catch (e) {
+    console.error("Mapbox token initialization error:", e.message);
+}
 
-  //reservation save route
-  module.exports.saveReservation = (req,res)=>{
-    
-    res.redirect("/listings");
-  }
-  //reservation show route
-  module.exports.showReservation = (req,res)=>{
-    res.render("listings/reservation.ejs");
-  }
- //show route
- module.exports.showListing = async (req,res) => {
-    let {id} = req.params;
+// index
+module.exports.index = async (req, res) => {
+    // Only return approved listings for public catalog
+    const allListings = await Listing.find({ isApproved: { $ne: false } }).sort({ _id: -1 });
+    res.json({ success: true, listings: allListings });
+};
+
+// show route
+module.exports.showListing = async (req, res) => {
+    let { id } = req.params;
     const data = await Listing.findById(id)
-    //nested populate
-    .populate({path:"reviews",populate:{path:"author"}}).populate("owner");
-    if(!data){
-        req.flash("error","Listing does not exist");
-        res.redirect("/wanderstay/listings");
+        .populate({ path: "reviews", populate: { path: "author", select: "username email" } })
+        .populate("owner", "username email");
+    if (!data) {
+        return res.status(404).json({ success: false, message: "Listing does not exist" });
     }
-    const username = req.session.username;
     data.clickCount += 1;
     await data.save();
-    res.render("listings/show.ejs",{data,username});
-}
+    res.json({ success: true, listing: data });
+};
 
-//create route
-module.exports.createListing = async(req,res,next) => { //wrapAsync error middleware function
-    let response = await geocodingClient.forwardGeocode({
-        query:req.body.listing.location,
-        limit: 1,
-      })
-        .send(); 
-    let url = req.file.path; 
-    let filename = req.file.filename;
-    const categories = Array.isArray(req.body.listing.categories) ? req.body.listing.categories : [req.body.listing.categories];
-    const listingData = req.body.listing;
-    const newListing = new Listing(listingData); //making instance of the javascipt object
+// create route
+module.exports.createListing = async (req, res, next) => {
+    let listingData = req.body.listing;
+    if (typeof listingData === "string") {
+        listingData = JSON.parse(listingData);
+    }
+    let geometry = { type: "Point", coordinates: [77.2090, 28.6139] }; // Default coordinates
+    if (geocodingClient && listingData.location) {
+        try {
+            let response = await geocodingClient.forwardGeocode({
+                query: listingData.location,
+                limit: 1,
+            }).send();
+            if (response.body.features && response.body.features.length > 0) {
+                geometry = response.body.features[0].geometry;
+            }
+        } catch (err) {
+            console.error("Geocoding failed:", err.message);
+        }
+    }
+
+    let image = {
+        url: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",
+        filename: "listingimage"
+    };
+    if (req.file) {
+        image = { url: req.file.path, filename: req.file.filename };
+    }
+
+    let categories = listingData.categories || [];
+    if (!Array.isArray(categories)) {
+        categories = [categories];
+    }
+
+    const newListing = new Listing(listingData);
     newListing.owner = req.user._id;
-    newListing.image = {url,filename};
-    newListing.geometry = response.body.features[0].geometry;
+    newListing.image = image;
+    newListing.geometry = geometry;
     newListing.categories = categories;
+    newListing.isApproved = false; // Requires Admin Approval
+
     let saved = await newListing.save();
-    req.flash("success","New listing created!!");
-    res.redirect("/wanderstay/listings");
-}
+    res.status(201).json({
+        success: true,
+        message: "Your stay has been submitted for approval! It will be published once reviewed by an admin.",
+        listing: saved
+    });
+};
 
-//edit render route
-module.exports.renderEditForm = async (req,res) =>{
-    let {id} = req.params;
-    const listing = await Listing.findById(id);
-    if(!listing){
-        req.flash("error","Listing does not exist");
-        res.redirect("/wanderstay/listings");
-    } 
-    res.render("listings/edit.ejs",{listing}); 
-}
+// update/edit route
+module.exports.updateListing = async (req, res) => {
+    let { id } = req.params;
+    let listingData = req.body.listing;
+    if (typeof listingData === "string") {
+        listingData = JSON.parse(listingData);
+    }
 
-//update/edit route
-module.exports.updateListing = async (req,res) => {
-    let {id} = req.params;
-    let listing = await Listing.findByIdAndUpdate(id,{...req.body.listing});
-    //location edit
-    if (req.body.listing.location) {
-        let response = await geocodingClient.forwardGeocode({
-            query: req.body.listing.location,
-            limit: 1,
-        }).send();
-        listing.geometry = response.body.features[0].geometry;
+    let listing = await Listing.findById(id);
+    if (!listing) {
+        return res.status(404).json({ success: false, message: "Listing not found" });
     }
-    //image edit
-    if(typeof req.file!=="undefined"){ //file exist
-    let url = req.file.path; 
-    let filename = req.file.filename;
-    listing.image = {url,filename};
+
+    Object.assign(listing, listingData);
+
+    if (geocodingClient && listingData.location) {
+        try {
+            let response = await geocodingClient.forwardGeocode({
+                query: listingData.location,
+                limit: 1,
+            }).send();
+            if (response.body.features && response.body.features.length > 0) {
+                listing.geometry = response.body.features[0].geometry;
+            }
+        } catch (err) {
+            console.error("Geocoding edit failed:", err.message);
+        }
     }
+
+    if (req.file) {
+        listing.image = { url: req.file.path, filename: req.file.filename };
+    }
+
     await listing.save();
-    req.flash("success","Listing updated");
-    res.redirect(`/wanderstay/listings/${id}`);
-}
-//search route
-module.exports.search = async (req, res) => {
-    const { query } = req.body;
-    if (query && query.trim()) {
-      const regex = new RegExp(query.trim(), 'i'); // Case-insensitive search
-      const searchQuery = {
-        $or: [{ country: regex }, { title: regex }],
-      };
-      const results = await Listing.find(searchQuery);
-      if(results.length===0){
-        req.flash("error","No listing found");
-        return res.redirect("/wanderstay/listings");
-      }
-      res.render("listings/search.ejs",{results})
-    } else {
-      // Handle empty query case (optional)
-      // You can send an informative message or an empty array here
-      req.flash("error","Error found");
-    }
-  };
+    res.json({ success: true, message: "Listing updated successfully", listing });
+};
 
-//filter feature
-module.exports.category = async (req,res)=>{
-  const {category} = req.query;
-  let listings;
-  if(category==="Rooms"){
-    req.flash("error","This feature is in development stage");
-    res.redirect("/wanderstay/listings");
-  }
-  else if(category==="Trending"){
-    listings = await Listing.aggregate([
-      { $sort: { clickCount: -1 } },
-      { $limit: 5 }
-  ])
-  res.render("listings/category.ejs",{listings,category});
-  }
-  else{
-  let query = {};
-  if(category){
-    query = { categories: category };
-  }
-  listings = await Listing.find(query);
-  res.render("listings/category.ejs",{listings,category});
-}
-}
-//delete route
-module.exports.destroyListing = async (req,res) =>{
-    let {id} = req.params;
+// search route
+module.exports.search = async (req, res) => {
+    const { query } = req.query.query ? req.query : req.body;
+    if (query && query.trim()) {
+        const regex = new RegExp(query.trim(), 'i');
+        const searchQuery = {
+            isApproved: { $ne: false },
+            $or: [{ country: regex }, { title: regex }, { location: regex }],
+        };
+        const results = await Listing.find(searchQuery);
+        return res.json({ success: true, results });
+    }
+    const results = await Listing.find({ isApproved: { $ne: false } });
+    res.json({ success: true, results });
+};
+
+// filter feature
+module.exports.category = async (req, res) => {
+    const { category } = req.query;
+    let listings;
+    if (category === "Trending") {
+        listings = await Listing.aggregate([
+            { $match: { isApproved: { $ne: false } } },
+            { $sort: { clickCount: -1 } },
+            { $limit: 10 }
+        ]);
+    } else if (category && category !== "All") {
+        listings = await Listing.find({ isApproved: { $ne: false }, categories: category });
+    } else {
+        listings = await Listing.find({ isApproved: { $ne: false } });
+    }
+    res.json({ success: true, listings, category });
+};
+
+
+// delete route
+module.exports.destroyListing = async (req, res) => {
+    let { id } = req.params;
     await Listing.findByIdAndDelete(id);
-    req.flash("success","Listing deleted");
-    res.redirect("/wanderstay/listings");
-} 
+    res.json({ success: true, message: "Listing deleted successfully" });
+};
+

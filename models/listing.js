@@ -42,7 +42,12 @@ const listingSchema = new Schema({  //defining schema
     }
    },
    categories: [String],
-  });
+   isApproved: {
+      type: Boolean,
+      default: false
+   }
+});
+
 
   //query middleware
   listingSchema.post("findOneAndDelete",async(listing)=>{
