@@ -2,6 +2,8 @@ const Listing = require("../models/listing");
 const Review = require("../models/review");
 const Reservation = require("../models/reservation");
 const User = require("../models/user");
+const ragService = require("../services/ragService");
+const qdrantService = require("../services/qdrantService");
 
 // Dashboard Overview Statistics
 module.exports.getStats = async (req, res) => {
@@ -46,6 +48,16 @@ module.exports.approveListing = async (req, res) => {
     }
     listing.isApproved = true;
     await listing.save();
+    // Index newly published listing into Qdrant (best-effort, non-blocking).
+    (async () => {
+        try {
+            const doc = await Listing.findById(listing._id).populate("reviews", "rating");
+            await qdrantService.ensureCollection();
+            await ragService.indexListing(doc);
+        } catch (e) {
+            console.error("Qdrant index on approve skipped:", e.message);
+        }
+    })();
     return res.json({ success: true, message: "Hostel approved and published live on WanderStay!", listing });
 };
 
@@ -62,6 +74,9 @@ module.exports.deleteListing = async (req, res) => {
     }
     
     await Listing.findByIdAndDelete(id);
+    qdrantService.deleteListing(id).catch((e) =>
+        console.error("Qdrant delete on admin remove skipped:", e.message)
+    );
     return res.json({ success: true, message: "Listing & associated reviews deleted successfully" });
 };
 

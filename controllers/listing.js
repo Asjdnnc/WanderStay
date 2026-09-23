@@ -1,5 +1,28 @@
 const Listing = require("../models/listing");
+const ragService = require("../services/ragService");
+const qdrantService = require("../services/qdrantService");
 const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
+
+// Best-effort Qdrant sync helpers. AI indexing must never break listing CRUD,
+// so failures (missing keys, Qdrant down) are swallowed and logged only.
+async function syncListingToQdrant(listingId) {
+    try {
+        const doc = await Listing.findById(listingId).populate("reviews", "rating");
+        if (doc && doc.isApproved !== false) {
+            await qdrantService.ensureCollection();
+            await ragService.indexListing(doc);
+        }
+    } catch (e) {
+        console.error("Qdrant index sync skipped:", e.message);
+    }
+}
+async function removeListingFromQdrant(listingId) {
+    try {
+        await qdrantService.deleteListing(listingId);
+    } catch (e) {
+        console.error("Qdrant delete sync skipped:", e.message);
+    }
+}
 const mapToken = process.env.MAP_TOKEN || "pk.eyJ1IjoiZGVtbyIsImEiOiJjbGV2M3B4ZXcwMDJpM3BwNmNpMnRxdXN4In0.fake";
 let geocodingClient;
 try {
@@ -114,6 +137,7 @@ module.exports.updateListing = async (req, res) => {
     }
 
     await listing.save();
+    syncListingToQdrant(listing._id); // fire-and-forget re-index
     res.json({ success: true, message: "Listing updated successfully", listing });
 };
 
@@ -156,6 +180,7 @@ module.exports.category = async (req, res) => {
 module.exports.destroyListing = async (req, res) => {
     let { id } = req.params;
     await Listing.findByIdAndDelete(id);
+    removeListingFromQdrant(id); // fire-and-forget vector cleanup
     res.json({ success: true, message: "Listing deleted successfully" });
 };
 

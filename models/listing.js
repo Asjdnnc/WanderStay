@@ -45,7 +45,17 @@ const listingSchema = new Schema({  //defining schema
    isApproved: {
       type: Boolean,
       default: false
-   }
+   },
+   // Cached AI review summary (see services/reviewSummaryService.js). Regenerated
+   // only when aiReviewSummaryHash no longer matches the current reviews.
+   aiReviewSummary: {
+      summary: String,
+      positivePoints: [String],
+      negativePoints: [String],
+      insufficient: Boolean,
+   },
+   aiReviewSummaryHash: String,
+   aiReviewSummaryGeneratedAt: Date,
 });
 
 

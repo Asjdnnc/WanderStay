@@ -159,6 +159,151 @@ docker run -d -p 80:8080 --env-file .env --name wanderstay wanderstay-app
 
 ---
 
+## 🤖 AI Features (Gemini + Qdrant RAG)
+
+WanderStay ships with **two AI capabilities** layered on top of the existing MERN
+stack. Both run entirely in the Node/Express backend — **no Python, no FastAPI,
+no agents** — and MongoDB stays the single source of truth. API keys live only in
+backend environment variables and are never exposed to React.
+
+### 1. Overall AI Architecture
+
+```text
+                         ┌──────────────────────────────────────────────┐
+                         │                React Frontend                 │
+                         │  AiReviewSummary.jsx   •   AiSearchPage.jsx    │
+                         └───────────────┬───────────────┬───────────────┘
+                                         │ POST          │ POST
+                          /api/ai/review-summary/:id   /api/ai/search
+                                         │               │
+                         ┌───────────────▼───────────────▼───────────────┐
+                         │            Express Backend (/api/ai)           │
+                         │  controllers/ai.js  →  services/*              │
+                         └───────┬─────────────────┬──────────────┬──────┘
+                                 │                 │              │
+                     reviewSummaryService     ragService     embeddingService
+                                 │                 │              │
+                 ┌───────────────▼──┐    ┌─────────▼───────┐  ┌───▼─────────┐
+                 │     MongoDB      │    │     Qdrant      │  │   Gemini    │
+                 │ (source of truth)│◀──▶│ (vector search) │  │ (LLM + emb) │
+                 └──────────────────┘    └─────────────────┘  └─────────────┘
+```
+
+### 2. How Review Summarization Works
+- Endpoint: `POST /api/ai/review-summary/:listingId`
+- The listing's reviews are fetched from **MongoDB** and sent to Gemini with a
+  strict system instruction ("only summarize supplied reviews, never invent").
+- Gemini returns **structured JSON** (`responseSchema`): `summary`,
+  `positivePoints[]`, `negativePoints[]`, `insufficient`.
+- **Caching:** the summary + a SHA-256 hash of the reviews are stored on the
+  Listing document (`aiReviewSummary`, `aiReviewSummaryHash`). Gemini is only
+  re-called when the reviews actually change, so unchanged listings are free.
+- Rendered by `frontend/src/components/AiReviewSummary.jsx` on the listing page.
+
+### 3. What Embeddings Are
+An **embedding** is a numeric vector that captures the *meaning* of text.
+Similar meanings produce nearby vectors, enabling semantic (not keyword) search.
+We use the dedicated Gemini embedding model `gemini-embedding-001`
+(dimension **768**) — *not* the text-generation model — via the reusable
+`generateEmbedding(text)` in `services/embeddingService.js`. The same function
+embeds both property documents and user queries so their vectors are comparable.
+
+### 4. How Property Documents Are Indexed
+Each listing is converted into a meaningful text document, e.g.:
+
+```text
+Property: Sea View Villa
+Location: Baga, Goa
+Price: 3800 per night
+Rating: 4.7
+Amenities: WiFi, Swimming Pool, Parking
+Description: Beautiful villa located near Baga beach...
+```
+
+`ragService.indexListing()` embeds that text and upserts it into Qdrant with a
+lightweight metadata payload (`listingId`, title, location, price, rating,
+amenities). Indexing is triggered when a listing is **created/approved**,
+**updated**, or via the explicit indexing job (below). MongoDB is **not**
+duplicated into Qdrant — only what's needed for retrieval.
+
+### 5. How Qdrant Is Used
+Qdrant stores one vector per approved listing in the `wanderstay_listings`
+collection (Cosine distance). Point IDs are derived **deterministically** from
+the MongoDB `_id` (MD5→UUID), so re-running the indexer **upserts** and never
+creates duplicates (idempotent). Qdrant is used **only** for semantic retrieval
+of listing IDs.
+
+### 6. How Semantic Search Works
+The user query is embedded with the same model, then Qdrant returns the top-K
+most similar listing IDs by vector similarity.
+
+### 7. How RAG Works
+- Endpoint: `POST /api/ai/search` with `{ "query": "..." }`
+- Flow: validate query → embed → Qdrant search → **re-fetch authoritative
+  listings from MongoDB** by ID → build a grounded context → send context +
+  query to Gemini → return `{ answer, recommendations[], listings[] }`.
+- The frontend renders the returned **real MongoDB listings** via `ListingCard`,
+  so price/name/rating shown are always authoritative — never LLM-invented.
+
+### 8. How Gemini Is Used
+- **Text generation** (`gemini-2.5-flash`): review summaries and RAG answers,
+  both forced into structured JSON via `responseSchema`.
+- **Embeddings** (`gemini-embedding-001`): vectorizing documents and queries.
+
+### 9. How Hallucination / Grounding Is Handled
+- Strict system instructions: answer **only** from the provided context, never
+  invent names/prices/ratings/amenities/availability.
+- The LLM must return `listingId`s copied from context; the backend **discards**
+  any recommendation whose ID isn't in the retrieved MongoDB set.
+- All displayed data comes from MongoDB, not the vector payload or the LLM.
+
+### 10. Environment Variables Required
+See `.env.example`. AI-specific keys (backend only):
+
+```env
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_MODEL=gemini-2.5-flash            # optional
+GEMINI_EMBEDDING_MODEL=gemini-embedding-001  # optional
+EMBEDDING_DIMENSION=768                   # optional (must match index & query)
+QDRANT_URL=http://localhost:6333
+QDRANT_API_KEY=                           # required for Qdrant Cloud
+QDRANT_COLLECTION=wanderstay_listings     # optional
+```
+
+### 11. How to Create the Qdrant Collection
+Start Qdrant locally with Docker (or use Qdrant Cloud):
+
+```bash
+docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
+```
+
+The collection is created automatically (`ensureCollection`) the first time you
+run the indexer or hit a search — no manual step needed.
+
+### 12. How to Run the Listing Indexing Process
+```bash
+npm run index:listings
+```
+This connects to MongoDB, ensures the Qdrant collection exists, embeds every
+approved listing, and upserts the vectors. It is **idempotent** — safe to run
+repeatedly. Admins can also trigger a re-index via `POST /api/ai/index`.
+
+### 13. Running the App Locally (with AI)
+1. Add `GEMINI_API_KEY` and `QDRANT_URL` to `.env` (see `.env.example`).
+2. Start Qdrant (Docker command above) if running locally.
+3. Start the backend: `npm run dev` (or `node app.js`).
+4. (Optional) Seed sample Indian listings: `npm run seed:india`
+   (non-destructive & idempotent — adds Goa/Manali/Jaipur/etc. as approved).
+5. Build the index once: `npm run index:listings`.
+5. Start the frontend: `cd frontend && npm run dev`.
+6. Open `http://localhost:5173` → try **AI Search** in the navbar, and open any
+   listing to generate its **AI Review Summary**.
+
+> If `GEMINI_API_KEY` is not set, the AI endpoints return a friendly `503` and
+> the rest of WanderStay keeps working normally.
+
+---
+
 ## 🤝 Author & Acknowledgements
 
 - **Developed by**: [Aditya Kumar](https://github.com/Asjdnnc)

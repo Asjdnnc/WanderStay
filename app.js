@@ -14,6 +14,7 @@ const reviewsRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
 const reservationRouter = require("./routes/reservation.js");
 const adminRouter = require("./routes/admin.js");
+const aiRouter = require("./routes/ai.js");
 
 
 const session = require("express-session");
@@ -158,6 +159,7 @@ app.use("/api/listings/:id/reviews", reviewsRouter);
 app.use("/api/auth", userRouter);
 app.use("/api/reservations", reservationRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/ai", aiRouter);
 
 
 // Backward compatibility mounts

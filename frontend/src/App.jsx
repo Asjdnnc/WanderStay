@@ -11,6 +11,7 @@ import ListingDetailPage from './pages/ListingDetailPage';
 import ListingFormPage from './pages/ListingFormPage';
 import ReservationsPage from './pages/ReservationsPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import AiSearchPage from './pages/AiSearchPage';
 
 export default function App() {
     const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -42,6 +43,7 @@ export default function App() {
                                 <Route path="/listings/:id/edit" element={<ListingFormPage openAuthModal={openAuthModal} />} />
                                 <Route path="/reservations" element={<ReservationsPage openAuthModal={openAuthModal} />} />
                                 <Route path="/admin" element={<AdminDashboardPage openAuthModal={openAuthModal} />} />
+                                <Route path="/ai-search" element={<AiSearchPage />} />
                                 <Route path="*" element={<ListingsIndexPage searchKeyword={searchKeyword} />} />
                             </Routes>
                         </div>

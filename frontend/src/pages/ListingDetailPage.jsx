@@ -6,6 +6,7 @@ import { Star, MapPin, Share2, Heart, ShieldCheck, User, Calendar, Users, Edit, 
 import { useAuth } from '../context/AuthContext';
 import Map from '../components/Map';
 import Skeleton from '../components/Skeleton';
+import AiReviewSummary from '../components/AiReviewSummary';
 
 
 const loadRazorpayScript = () => {
@@ -469,6 +470,9 @@ export default function ListingDetailPage({ openAuthModal }) {
                             <h3 className="text-lg font-extrabold text-slate-900 dark:text-slate-100">Where you'll be</h3>
                             <Map geometry={listing.geometry} location={`${listing.location}, ${listing.country}`} />
                         </div>
+
+                        {/* AI Review Summary */}
+                        <AiReviewSummary listingId={id} reviewCount={listing.reviews?.length || 0} />
 
                         {/* Reviews Section */}
                         <div className="space-y-6">
