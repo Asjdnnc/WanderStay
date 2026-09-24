@@ -41,6 +41,8 @@ function getClient() {
  */
 async function generateStructured({ systemInstruction, prompt, responseSchema }) {
     const ai = getClient();
+    
+    console.log(`[Gemini API] Calling generateContent with model: ${GENERATION_MODEL}`);
 
     const response = await ai.models.generateContent({
         model: GENERATION_MODEL,

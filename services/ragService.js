@@ -147,7 +147,7 @@ function buildGroundedContext(listings) {
  * Full RAG search for a natural-language query.
  * @returns {Promise<{answer:string, recommendations:Array, listings:Array}>}
  */
-async function search(query, { topK = 5, minScore = 0.70 } = {}) {
+async function search(query, { topK = 5, minScore = 0.50 } = {}) {
     // 1. Embed the query with the SAME model used for indexing.
     const queryVector = await generateEmbedding(query);
 
