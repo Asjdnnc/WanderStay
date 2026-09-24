@@ -147,13 +147,18 @@ function buildGroundedContext(listings) {
  * Full RAG search for a natural-language query.
  * @returns {Promise<{answer:string, recommendations:Array, listings:Array}>}
  */
-async function search(query, { topK = 5 } = {}) {
+async function search(query, { topK = 5, minScore = 0.70 } = {}) {
     // 1. Embed the query with the SAME model used for indexing.
     const queryVector = await generateEmbedding(query);
 
     // 2. Vector similarity search in Qdrant -> candidate listing IDs.
     const matches = await qdrantService.search({ vector: queryVector, limit: topK });
-    const candidateIds = matches.map((m) => m.listingId).filter(Boolean);
+    
+    // Filter matches that do not meet the minimum similarity threshold
+    const candidateIds = matches
+        .filter((m) => m.score >= minScore)
+        .map((m) => m.listingId)
+        .filter(Boolean);
 
     if (candidateIds.length === 0) {
         return {
