@@ -1,4 +1,4 @@
-# 🏡 WanderStay — Premium Stay Booking & Property Hosting Platform
+# WanderStay — Premium Stay Booking & Property Hosting Platform
 
 [![React](https://img.shields.io/badge/React-18.x-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![Node.js](https://img.shields.io/badge/Node.js-20.x-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
